@@ -5,7 +5,6 @@ import io.reactivex.schedulers.Schedulers;
 import org.telegram.telegrambots.api.methods.GetFile;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.api.objects.File;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.PhotoSize;
 import org.telegram.telegrambots.api.objects.Update;
@@ -14,14 +13,12 @@ import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboar
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 import telegram.database.Manager;
-import telegram.dbx.DbxHelper;
 import telegram.objects.User;
 import telegram.sqlite.SQLiteHelper;
 import telegram.util.ZXing;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.Math.toIntExact;
@@ -87,7 +84,7 @@ public class QrBot extends TelegramLongPollingBot {
                         Observable.defer(() -> Observable.just(update.getMessage()))
                                 .map(message1 -> getPhotoFile(message1))
                                 .filter(file -> file != null)
-                                .map(file -> ZXing.readQr(file))
+                                .map(file -> ZXing.readQrCode(file))
                                 .filter(code -> code != null)
                                 .map(code -> SQLiteHelper.checkQrCode(String.valueOf(chat_id), code))
                                 .filter(task -> task != null)

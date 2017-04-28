@@ -1,6 +1,5 @@
 package telegram.sqlite;
 
-import org.sqlite.SQLiteException;
 import telegram.dbx.DbxHelper;
 import telegram.objects.Task;
 
