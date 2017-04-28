@@ -82,7 +82,7 @@ public class QrBot extends TelegramLongPollingBot {
                     if (update.getMessage().hasPhoto()) {
                         List<PhotoSize> photos = update.getMessage().getPhoto();
 
-                        Observable.defer(() -> Observable.just(photos.stream().findFirst().orElse(null)))
+                        Observable.defer(() -> Observable.just(photos.stream().findFirst().orElse(null).))
                                 .filter(photo -> photo != null)
                                 .map(photo -> getFilePath(photo))
                                 .map(path -> downloadPhotoByFilePath(path))
@@ -143,7 +143,7 @@ public class QrBot extends TelegramLongPollingBot {
         sendCommonMessage(message.setText("Ошибка, попробуйте еще раз"));
     }
 
-    public String getFilePath(PhotoSize photo) {
+    private String getFilePath(PhotoSize photo) {
         Objects.requireNonNull(photo);
 
         if (photo.hasFilePath()) {
@@ -161,8 +161,9 @@ public class QrBot extends TelegramLongPollingBot {
         return null;
     }
 
-    public java.io.File downloadPhotoByFilePath(String filePath) {
+    private java.io.File downloadPhotoByFilePath(String filePath) {
         try {
+            System.out.println(filePath);
             return downloadFile(filePath);
         } catch (TelegramApiException e) {
             e.printStackTrace();
