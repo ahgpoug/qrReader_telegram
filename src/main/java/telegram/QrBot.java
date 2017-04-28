@@ -6,6 +6,7 @@ import org.telegram.telegrambots.api.methods.GetFile;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.api.objects.File;
+import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.PhotoSize;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -13,6 +14,7 @@ import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboar
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 import telegram.database.Manager;
+import telegram.dbx.DbxHelper;
 import telegram.objects.User;
 import telegram.sqlite.SQLiteHelper;
 import telegram.util.ZXing;
@@ -82,10 +84,9 @@ public class QrBot extends TelegramLongPollingBot {
                     if (update.getMessage().hasPhoto()) {
                         List<PhotoSize> photos = update.getMessage().getPhoto();
 
-                        Observable.defer(() -> Observable.just(photos.stream().findFirst().orElse(null)))
-                                .filter(photo -> photo != null)
-                                .map(photo -> getFilePath(photo))
-                                .map(path -> downloadPhotoByFilePath(path))
+                        Observable.defer(() -> Observable.just(update.getMessage()))
+                                .map(message1 -> getPhotoFile(message1))
+                                .filter(file -> file != null)
                                 .map(file -> ZXing.readQr(file))
                                 .filter(code -> code != null)
                                 .map(code -> SQLiteHelper.checkQrCode(String.valueOf(chat_id), code))
@@ -143,33 +144,16 @@ public class QrBot extends TelegramLongPollingBot {
         sendCommonMessage(message.setText("Ошибка, попробуйте еще раз"));
     }
 
-    private String getFilePath(PhotoSize photo) {
-        Objects.requireNonNull(photo);
+    private java.io.File getPhotoFile(Message message){
+        String fileId = message.getPhoto().get(message.getPhoto().size() - 1).getFileId();
 
-        if (photo.hasFilePath()) {
-            return photo.getFilePath();
-        } else {
-            GetFile getFileMethod = new GetFile();
-            getFileMethod.setFileId(photo.getFileId());
-            try {
-                File file = getFile(getFileMethod);
-                return file.getFilePath();
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
-        }
-        return null;
-    }
-
-    private java.io.File downloadPhotoByFilePath(String filePath) {
-        try {
-            System.out.println(filePath);
-            return downloadFile(filePath);
-        } catch (TelegramApiException e) {
+        java.io.File photoFile = null;
+        try{
+            photoFile = downloadFile(getFile(new GetFile().setFileId(fileId)));
+        } catch (Exception e){
             e.printStackTrace();
         }
-
-        return null;
+        return photoFile;
     }
 
     private void sendEditMessage(EditMessageText editMessageText){

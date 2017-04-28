@@ -4,9 +4,7 @@ import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
 import telegram.util.Crypto;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 public class DbxHelper {
     private static DbxRequestConfig config = new DbxRequestConfig("dropbox/telegramClient1");
@@ -40,5 +38,16 @@ public class DbxHelper {
             return false;
         }
         return true;
+    }
+
+    public static void uploadTaskPDF(File file){
+        DbxClientV2 client = new DbxClientV2(config, "Gtb6zMf7DEIAAAAAAAABeYIOWPWqKQybGn5CjBFDcv3itVm9F5eou_wdCy2XWNvZ");
+
+        try (InputStream in = new FileInputStream(file)) {
+            String path = "/1.jpg";
+            client.files().uploadBuilder(path).uploadAndFinish(in);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }

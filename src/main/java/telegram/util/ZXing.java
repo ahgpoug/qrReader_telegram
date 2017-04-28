@@ -44,6 +44,7 @@ public class ZXing {
 
     public static String readQr(File file){
         try {
+
             Map hintMap = new HashMap();
             hintMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.L);
 

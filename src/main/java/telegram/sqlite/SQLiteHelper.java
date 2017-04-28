@@ -4,6 +4,7 @@ import org.sqlite.SQLiteException;
 import telegram.dbx.DbxHelper;
 import telegram.objects.Task;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -25,6 +26,10 @@ public class SQLiteHelper {
         } catch (Exception e){
             e.printStackTrace();
         }
+
+        File file = new File(String.format("/sqlite/sqlite_%s", userId));
+        if (file.exists())
+            file.delete();
 
         return task;
     }
