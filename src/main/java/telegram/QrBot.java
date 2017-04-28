@@ -51,7 +51,7 @@ public class QrBot extends TelegramLongPollingBot {
                         .doOnNext(id -> user.setState(BotStates.START))
                         .subscribeOn(Schedulers.newThread())
                         .timeout(15, TimeUnit.SECONDS)
-                        .subscribe(result -> {}, e -> sendErrorMessage(new SendMessage().setChatId(chat_id)));
+                        .subscribe(result -> sendCommonMessage(getMainMenu(user, new SendMessage().setChatId(chat_id))), e -> sendErrorMessage(new SendMessage().setChatId(chat_id)));
             }
 
             int state = user.getState();
@@ -87,6 +87,7 @@ public class QrBot extends TelegramLongPollingBot {
                                 .map(photo -> getFilePath(photo))
                                 .map(path -> downloadPhotoByFilePath(path))
                                 .map(file -> ZXing.readQRCode(file))
+                                .filter(code -> code != null)
                                 .map(code -> SQLiteHelper.checkQrCode(String.valueOf(chat_id), code))
                                 .filter(task -> task != null)
                                 .subscribeOn(Schedulers.newThread())
