@@ -89,6 +89,11 @@
       <element id="library" level="project" name="Maven: mysql:mysql-connector-java:5.1.41" />
       <element id="library" level="project" name="Maven: io.reactivex.rxjava2:rxjava:2.0.9" />
       <element id="library" level="project" name="Maven: org.reactivestreams:reactive-streams:1.0.0" />
+      <element id="library" level="project" name="Maven: com.google.zxing:core:3.3.0" />
+      <element id="library" level="project" name="Maven: com.dropbox.core:dropbox-core-sdk:3.0.1" />
+      <element id="library" level="project" name="Maven: com.fasterxml.jackson.core:jackson-core:2.7.4" />
+      <element id="library" level="project" name="Maven: commons-net:commons-net:3.6" />
+      <element id="library" level="project" name="Maven: org.xerial:sqlite-jdbc:3.16.1" />
     </root>
   </artifact>
 </component>
