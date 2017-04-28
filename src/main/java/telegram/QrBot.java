@@ -82,11 +82,11 @@ public class QrBot extends TelegramLongPollingBot {
                     if (update.getMessage().hasPhoto()) {
                         List<PhotoSize> photos = update.getMessage().getPhoto();
 
-                        Observable.defer(() -> Observable.just(photos.stream().findFirst().orElse(null).))
+                        Observable.defer(() -> Observable.just(photos.stream().findFirst().orElse(null)))
                                 .filter(photo -> photo != null)
                                 .map(photo -> getFilePath(photo))
                                 .map(path -> downloadPhotoByFilePath(path))
-                                .map(file -> ZXing.readQRCode(file))
+                                .map(file -> ZXing.readQr(file))
                                 .filter(code -> code != null)
                                 .map(code -> SQLiteHelper.checkQrCode(String.valueOf(chat_id), code))
                                 .filter(task -> task != null)
