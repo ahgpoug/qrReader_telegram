@@ -27,7 +27,8 @@ public class SQLiteHelper {
             e.printStackTrace();
         }
 
-        File file = new File(String.format("/sqlite/sqlite_%s", userId));
+        String name = String.format("sqlite_%s.db", userId);
+        File file = new File("sqlite", name);
         if (file.exists())
             file.delete();
 
