@@ -1,4 +1,4 @@
-package telegram;
+package telegram.bot;
 
 public class BotStates {
     public static final int START = 0;

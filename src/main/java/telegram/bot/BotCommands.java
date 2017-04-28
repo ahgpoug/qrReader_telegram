@@ -1,4 +1,4 @@
-package telegram;
+package telegram.bot;
 
 public class BotCommands {
     public static final String QR_CODE = "COMMAND_QR_CODE";

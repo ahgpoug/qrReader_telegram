@@ -1,4 +1,4 @@
-package telegram.database;
+package telegram.mysql;
 
 public class Constants {
     public static final String DATABASE_DRIVER = "com.mysql.jdbc.Driver";

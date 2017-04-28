@@ -1,4 +1,4 @@
-package telegram.database;
+package telegram.mysql;
 
 import telegram.objects.User;
 
