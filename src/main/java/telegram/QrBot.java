@@ -45,7 +45,7 @@ public class QrBot extends TelegramLongPollingBot {
             SendMessage message = new SendMessage()
                     .setChatId(chat_id);
 
-            if (update.getMessage().getText().equals("/start")){
+            if (update.getMessage().hasText() && update.getMessage().getText().equals("/start")){
                 Observable.defer(() -> Observable.just(chat_id))
                         .doOnNext(id -> Manager.changeUserState(String.valueOf(id), BotStates.START))
                         .doOnNext(id -> user.setState(BotStates.START))
