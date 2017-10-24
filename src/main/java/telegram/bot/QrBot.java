@@ -6,13 +6,13 @@ import org.telegram.telegrambots.api.methods.GetFile;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.api.objects.Message;
-import org.telegram.telegrambots.api.objects.PhotoSize;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 import telegram.mysql.Manager;
+import telegram.objects.Task;
 import telegram.objects.User;
 import telegram.sqlite.SQLiteHelper;
 import telegram.util.ZXing;
@@ -47,6 +47,8 @@ public class QrBot extends TelegramLongPollingBot {
             if (update.getMessage().hasText() && update.getMessage().getText().equals("/start")){
                 Observable.defer(() -> Observable.just(chat_id))
                         .doOnNext(id -> Manager.changeUserState(String.valueOf(id), BotStates.START))
+                        .doOnNext(id -> Manager.changeUserTask(String.valueOf(id), ""))
+                        .doOnNext(id -> user.setTaskId(""))
                         .doOnNext(id -> user.setState(BotStates.START))
                         .subscribeOn(Schedulers.newThread())
                         .timeout(15, TimeUnit.SECONDS)
@@ -79,8 +81,6 @@ public class QrBot extends TelegramLongPollingBot {
                     break;
                 case BotStates.UPLOAD_QR_CODE:
                     if (update.getMessage().hasPhoto()) {
-                        List<PhotoSize> photos = update.getMessage().getPhoto();
-
                         Observable.defer(() -> Observable.just(update.getMessage()))
                                 .map(message1 -> getPhotoFile(message1))
                                 .filter(file -> file != null)
@@ -88,9 +88,16 @@ public class QrBot extends TelegramLongPollingBot {
                                 .filter(code -> code != null)
                                 .map(code -> SQLiteHelper.checkQrCode(String.valueOf(chat_id), code))
                                 .filter(task -> task != null)
+                                .doOnNext(task -> Manager.addTask(task))
+                                .doOnNext(task -> Manager.changeUserTask(String.valueOf(chat_id), task.getId()))
+                                .doOnNext(task -> user.setTaskId(task.getId()))
                                 .subscribeOn(Schedulers.newThread())
                                 .timeout(60, TimeUnit.SECONDS)
-                                .subscribe(result -> sendCommonMessage(new SendMessage().setChatId(chat_id).setText("Загружено " + result.getTaskName())), e -> sendErrorMessage(new SendMessage().setChatId(chat_id)));
+                                .subscribe(result -> {
+                                    sendCommonMessage(new SendMessage().setChatId(chat_id).setText("Загружено " + result.getTaskName()));
+                                    sendCommonMessage(new SendMessage().setChatId(chat_id).setText("");
+
+                                }, e -> sendErrorMessage(new SendMessage().setChatId(chat_id)));
                     }
                     break;
             }
@@ -169,14 +176,14 @@ public class QrBot extends TelegramLongPollingBot {
         }
     }
 
-    private EditMessageText getMainMenu(User user, EditMessageText editMessageText){
-        editMessageText.setText(String.format("Здравствуйте, %s\nГлавное меню.", user.getAlias()));
-        editMessageText.setReplyMarkup(getMainMenuKeyboard());
-        return editMessageText;
-    }
-
     private SendMessage getMainMenu(User user, SendMessage message){
         message.setText(String.format("Здравствуйте, %s\nГлавное меню.", user.getAlias()));
+        message.setReplyMarkup(getTaskMenuKeyboard());
+        return message;
+    }
+
+    private SendMessage getTaskMenu(Task task, SendMessage message){
+        message.setText(String.format("%s, %s.", task.getTaskName(), task.getGroupName()));
         message.setReplyMarkup(getMainMenuKeyboard());
         return message;
     }
@@ -187,6 +194,17 @@ public class QrBot extends TelegramLongPollingBot {
         List<InlineKeyboardButton> rowInline = new ArrayList<>();
         rowInline.add(new InlineKeyboardButton().setText("Загрузить QR код").setCallbackData(BotCommands.QR_CODE));
         rowInline.add(new InlineKeyboardButton().setText("Сменить имя").setCallbackData(BotCommands.CHANGE_ALIAS));
+        rowsInline.add(rowInline);
+        markupInline.setKeyboard(rowsInline);
+        return markupInline;
+    }
+
+    private InlineKeyboardMarkup getTaskMenuKeyboard(){
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> rowInline = new ArrayList<>();
+        rowInline.add(new InlineKeyboardButton().setText("Загрузить фотографии").setCallbackData(BotCommands.UPLOAD_PHOTOS));
+        rowInline.add(new InlineKeyboardButton().setText("Сменить имя").setCallbackData(BotCommands.GET_PDF));
         rowsInline.add(rowInline);
         markupInline.setKeyboard(rowsInline);
         return markupInline;
